@@ -6,11 +6,12 @@
     <allowedvalue>github</allowedvalue>
     <allowedvalue>gitorious</allowedvalue>
     <allowedvalue>Mer</allowedvalue>
-    <required/>
   </parameter>
   <parameter name="repo">
     <description>Name of the repository to clone or remote update (including path)</description>
-    <required/>
+  </parameter>
+  <parameter name="url">
+    <description>URL of the repository to clone or remote update</description>
   </parameter>
   <parameter name="tag">
     <description>Tag containing the _src file to build</description>

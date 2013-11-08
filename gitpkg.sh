@@ -12,6 +12,8 @@ STORE=/data/service/gitpkg
 SVC=""
 REPO=""
 OUTDIR=""
+WORKDIR=""
+URL=""
 
 SERVICES="github|gitorious|mer"
 
@@ -21,10 +23,12 @@ Usage: $0 --service <service> --repo <path/pkg> [--outdir <outdir>]
 Options:
   --service <service>      Git hosting service to use ($SERVICES)
   --repo <path/pkg>        Repository path to check out
+  --url <url>              URL of git repo to clone from
   --outdir <outdir>        Move files to outdir after checkout (optional)
 
 Examples:
   $0 --service github --repo lbt/powertop
+  $0 --url https://github.com/lbt/powertop
 
 EOF
 }
@@ -43,6 +47,10 @@ while test $# -gt 0; do
     ;;
     *-repo)
       REPO="$2"
+      shift
+    ;;
+    *-url)
+      URL="$2"
       shift
     ;;
     *-tag)
@@ -66,16 +74,39 @@ while test $# -gt 0; do
   shift
 done
 
-if [ -z "$SVC" ]; then
-  fatal "ERROR: no --service parameter ($SERVICES)"
-fi
-if [ -z "$REPO" ]; then
-  fatal "ERROR: no --repo parameter"
-fi
+if [ -n "$URL" ]; then
 
-repo_regexp="^[A-Za-z0-9_-]*/[A-Za-z0-9_-]*$"
-if ! [[ $REPO =~ $repo_regexp ]]; then
-    fatal "ERROR: repo '$REPO'is not in area/repo format (omit .git and any http://.../ part)"
+  if [ -n "$SVC" ]; then
+    fatal "ERROR: --service parameter conflicts with --url parameter"
+  fi
+  if [ -n "$REPO" ]; then
+    fatal "ERROR: --repo parameter conflicts with --url parameter"
+  fi
+
+  regex1='^[a-z]+://([[:alnum:]_.-]+@)?[[:alnum:]_./~%-]+$'      # url
+  regex2='^([[:alnum:]_.-]+@)?[[:alnum:]_.-]+:[[:alnum:]_./-]+$' # ssh
+  if [[ -z "$URL" || ! "$URL" =~ $regex1|$regex2 && ! -d "$URL" ]]; then
+   fatal "ERROR: URL '$URL' is has wrong format"
+  fi
+
+  WORKDIR="`basename \"$URL\"`"
+
+else
+
+  if [ -z "$SVC" ]; then
+    fatal "ERROR: no --service parameter ($SERVICES)"
+  fi
+  if [ -z "$REPO" ]; then
+    fatal "ERROR: no --repo parameter"
+  fi
+
+  repo_regexp="^[A-Za-z0-9_-]*/[A-Za-z0-9_-]*$"
+  if ! [[ $REPO =~ $repo_regexp ]]; then
+      fatal "ERROR: repo '$REPO'is not in area/repo format (omit .git and any http://.../ part)"
+  fi
+
+  WORKDIR="$SVC/$REPO"
+
 fi
 
 tag_regexp="^[A-Za-z0-9_.-]*$"
@@ -83,7 +114,8 @@ if ! [[ $TAG =~ $tag_regexp ]]; then
     fatal "ERROR: repo '$TAG'is not valid (must match '$tag_regexp')"
 fi
 
-case "$SVC" in
+if [ -z "$URL" ]; then
+  case "$SVC" in
     github)
         URL="git://github.com/${REPO}.git" ;;
     gitorious)
@@ -93,7 +125,8 @@ case "$SVC" in
     *)
         echo "Sorry, git service $SVC is not whitelisted. please contact lbt in #mer"
         exit 1 ;;
-esac
+  esac
+fi
 
 PRJDIR=$(pwd)
 cd $STORE 2>/dev/null
@@ -107,8 +140,8 @@ if [ $? -ne 0 ]; then
     cd $TMPSTORE
 fi
 
-mkdir -p $SVC/$REPO
-cd $SVC/$REPO
+mkdir -p "$WORKDIR"
+cd "$WORKDIR"
 
 # clone or update
 if [ -d .git ]; then

@@ -54,7 +54,7 @@ Uses gitpkg to retrieve source
 # << build pre
 
 
-make %{?jobs:-j%jobs}
+PYTHON=%{__python} make %{?jobs:-j%jobs}
 
 # >> build post
 # << build post
@@ -63,7 +63,7 @@ make %{?jobs:-j%jobs}
 rm -rf %{buildroot}
 # >> install pre
 # << install pre
-%make_install
+PYTHON=%{__python} %make_install
 
 # >> install post
 # << install post

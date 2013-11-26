@@ -1,3 +1,6 @@
+* Tue Nov 26 2013 Oleg Girko <ol@infoserver.lv> - 0.1.4-3
+- Use %{__python} macro for Python interpreter to build scripts.
+
 * Fri Nov 08 2013 Oleg Girko <ol@infoserver.lv> - 0.1.4-2
 - Add patch to allow gitpkg OBS service to use arbitrary repos.
 

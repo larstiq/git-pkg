@@ -20,6 +20,7 @@ License:    GPLv2
 BuildArch:  noarch
 Source0:    gitpkg-%{version}.tar.gz
 Source100:  gitpkg.yaml
+Patch1:     0001-Add-url-parameter-to-allow-gitpkg-service-to-use-rep.patch
 Requires:   git
 Requires:   pristine-tar
 Requires:   python-yaml
@@ -42,6 +43,7 @@ Uses gitpkg to retrieve source
 
 %prep
 %setup -q -n src
+%patch1 -p1
 
 # >> setup
 # << setup
@@ -51,7 +53,7 @@ Uses gitpkg to retrieve source
 # << build pre
 
 
-make %{?jobs:-j%jobs}
+PYTHON=%{__python} make %{?jobs:-j%jobs}
 
 # >> build post
 # << build post
@@ -60,7 +62,7 @@ make %{?jobs:-j%jobs}
 rm -rf %{buildroot}
 # >> install pre
 # << install pre
-%make_install
+PYTHON=%{__python} %make_install
 
 # >> install post
 # << install post
